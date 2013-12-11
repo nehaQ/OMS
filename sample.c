@@ -194,7 +194,7 @@ void handleGenieEvent(struct genieReplyStruct * reply)
 	genieWriteObj(GENIE_OBJ_FORM, 11, 0); 
 	
 	
-	//genieWriteStr(5, msgs_for_user);
+	genieWriteStr(5, msgs_for_user);
       }
       if(reply->index == 2)
       {
@@ -220,7 +220,6 @@ void handleGenieEvent(struct genieReplyStruct * reply)
 	// Set slider to 0
 	genieWriteObj(GENIE_OBJ_SLIDER, 1, 0);
 	genieWriteObj(GENIE_OBJ_LED_DIGITS, 0, 0);
-	//updateDisplay();
       }
       if(reply->index == 5)
       {
@@ -253,7 +252,7 @@ void handleGenieEvent(struct genieReplyStruct * reply)
       if(reply->index == 10)
       {
         msg_no++;
-        sprintf(msgs_for_user, "%s|%s", msgs_for_user, buf);
+        sprintf(msgs_for_user, "%s\n%s", msgs_for_user, buf);
         // Clear the buffer
         memset(&buf[0], 0, sizeof(buf));
         count = 0;
@@ -265,13 +264,10 @@ void handleGenieEvent(struct genieReplyStruct * reply)
       }
       if(reply->index == 11)
       {
-        // sprintf(password, "%s", buf);
-        
         if(strcmp(buf, password) == 0) // That is PIN is right
 	{
 	  // Go to form0 (Back to user home screen)
  	  genieWriteObj(GENIE_OBJ_FORM, 0, 0);
-	  //genieWriteStr(5, userMsg);
 	}
 	else
 	{
@@ -298,6 +294,41 @@ void handleGenieEvent(struct genieReplyStruct * reply)
 	genieWriteObj(GENIE_OBJ_FORM, 0, 0);
 	//updateDisplay();
       }
+      if(reply->index == 13)
+      {
+      	// Go to form12 (User chooses to set clk/timer)
+      	genieWriteObj(GENIE_OBJ_FORM, 12, 0);
+      }
+      if(reply->index == 17)
+      {
+      	// Go to form1 (User chooses to pick/set msg)
+      	genieWriteObj(GENIE_OBJ_FORM, 1, 0);
+      }
+      if(reply->index == 18)
+      {
+      	// Go to form1 (User chooses to pic/set msg)
+    	genieWriteObj(GENIE_OBJ_FORM, 1, 0);
+      }
+      if(reply->index == 19)
+      {
+        // Go to form12 (User chooses to set clk/timer)
+      	genieWriteObj(GENIE_OBJ_FORM, 12, 0);
+      }
+      if(reply->index == 20)
+      {
+      	// Go to form4 (Set timer screen)
+      	genieWriteObj(GENIE_OBJ_FORM, 4, 0);
+      }
+      if(reply->index == 21)
+      {
+        // Go to form13 (Set alarm screen)
+        genieWriteObj(GENIE_OBJ_FORM, 13, 0);
+      }
+      if(reply->index == 22)
+      {
+        // Go to form1 (User chooses to set/pick msg)
+        genieWriteObj(GENIE_OBJ_FORM, 1, 0); 
+      }
     }// End-if Winbutton
     
     if(reply->object == GENIE_OBJ_SLIDER)
@@ -305,7 +336,8 @@ void handleGenieEvent(struct genieReplyStruct * reply)
       if(reply->index == 0)
       {
         // Write to the LED digits the value of slider
-        genieWriteObj(GENIE_OBJ_LED_DIGITS, 0x03, reply->data);
+        int hello = reply->data;
+        genieWriteObj(GENIE_OBJ_LED_DIGITS, 0x03, hello);
       }
       if(reply->index == 1)
       {
@@ -328,7 +360,7 @@ void handleGenieEvent(struct genieReplyStruct * reply)
       if(reply->index == 3) // From the user picks a msg screen
     	{
     	  message_picked = reply->data;  
-    	  printf("%d", reply->data);
+    	  printf("herdfhg%d", reply->data);
     	}
     }
  
