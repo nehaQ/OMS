@@ -11,26 +11,34 @@
 //	    Winbutton2, Winbutton3
 // Form 2 - Pick a message screen. Uses a slider to choose the message 
 //	    user wants to display
-//	    Slider0, StaticText0 to StaticText5, Leddigits3
+//	    Slider0, StaticText0 to StaticText5, Leddigits3, Winbutton13
+//	    Winbutton17
 // Form 3 - Screen with a keyboard for the user to type out the message
-//	    Keyboard0, Strings0, Winbutton4
+//	    Keyboard0, Strings0, Winbutton4, Winbutton18
 // Form 4 - Screen to set countdown timer. Uses a slider and LED digits
 //	    Slider1, StaticText6, StaticText7, Leddigits0, Winbutton5
+//	    Winbutton19
 // Form 5 - Screen which is displayed to the visitor
-//	    Leddigits1, Leddigits2, StaticText8 to StaticText10, Strings1
-//	    Strings2, Winbutton6, Winbutton7
+//	    Leddigits1, Leddigits2, Leddigits5, Leddigits 6
+//	    StaticText8 to StaticText10, Strings1, Strings2
+//	    Strings7, Winbutton6, Winbutton7
 // Form 6 - Pick a message/Set Message screen for the visitor
-//	    Winbutton8, Winbutton9
+//	    Winbutton8, Winbutton9, Winbutton25
 // Form 7 - Keyboard for the visitor
 //	    Keyboard1, Strings3, Winbutton10
 // Form 8 - Preset messages for visitor with slider to choose
-//	    Leddigits4, Slider2, StaticText11 to 13
+//	    Leddigits4, Slider2, StaticText11 to 13, Winbutton26
+// 	    4Dbutton0, 4Dbutton1
 // Form 9 - Acknowledgement screen for the visitor
 //	    Image0, StaticText14
 // Form 10- PIN entered access for the user
 //	    Keyboard2, StaticText15, Strings4, Winbutton11
 // Form 11- Read your messages screen for the user
 //	    StaticText16, Strings5, Winbutton12
+// Form 12- User chooses to set timer or set alarm
+//	    Winbutton20 - 22
+// Form 13- User sets the alarm
+// 	    Winbutton23 - 24, StaticText7, Knob0, Leddigits4, Strings6
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -50,7 +58,7 @@ int display;
 int count;
 char buf [500]; // Buffer to hold string to print to screen
 char user_message [500]; // 
-char* msgs_for_user[10]; // Store the users messages
+char msgs_for_user[100] = "Hello\nYolo"; // Store the users messages
 char password[] = "2957\0"; // Store the users password
 int count = 0; // Count the number of characters being printed
 int tortoise = 1; //starting time value
