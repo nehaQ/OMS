@@ -333,18 +333,22 @@ void handleGenieEvent(struct genieReplyStruct * reply)
     
     if(reply->object == GENIE_OBJ_SLIDER)
     {
+      // Slider for user picks a msg form
       if(reply->index == 0)
       {
         // Write to the LED digits the value of slider
         int hello = reply->data;
+        printf("wassup bitches%d", hello);
         genieWriteObj(GENIE_OBJ_LED_DIGITS, 0x03, hello);
       }
+      // Slider for set timer screen
       if(reply->index == 1)
       {
-        // Write to the LED digits the value of slider
-        genieWriteObj(GENIE_OBJ_LED_DIGITS, 0x00, reply->data);
         // Store the time to display later
-        tortoise = reply->data;        
+        tortoise = reply->data;
+        // Write to the LED digits the value of slider
+        genieWriteObj(GENIE_OBJ_LED_DIGITS, 0x00, tortoise);
+                
       }
       if(reply->index == 2)
       {
