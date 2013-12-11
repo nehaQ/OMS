@@ -49,15 +49,15 @@
 int display;
 int count;
 char buf [500]; // Buffer to hold string to print to screen
-char message [500]; // 
-char userMsg[1000]; // Store the users messages
-char password[20]; // Store the users password
+char user_message [500]; // 
+char* msgs_for_user[10]; // Store the users messages
+char password[] = "2957\0"; // Store the users password
 int count = 0; // Count the number of characters being printed
-int tortoise = 1;
+int tortoise = 1; //starting time value
 int wrongPIN = 0;
 int i_was_to_be_back = 0;
 int message_picked = 0;
-
+int msg_no = 0;
 //-----------------------------------------------------------------------
 
 // Runs the countdown on the second form
@@ -183,7 +183,10 @@ void handleGenieEvent(struct genieReplyStruct * reply)
       if(reply->index == 1)
       {
 	// Go to form11 (Read your msgs screen)
-	genieWriteObj(GENIE_OBJ_FORM, 11, 0);
+	genieWriteObj(GENIE_OBJ_FORM, 11, 0); 
+	
+	
+	//genieWriteStr(5, msgs_for_user);
       }
       if(reply->index == 2)
       {
@@ -199,7 +202,7 @@ void handleGenieEvent(struct genieReplyStruct * reply)
       }
       if(reply->index == 4)
       {
-      	sprintf(message, "%s", buf);
+      	sprintf(user_message, "%s", buf);
         // Clear the buffer
         memset(&buf[0], 0, sizeof(buf));
         count = 0;
@@ -215,12 +218,11 @@ void handleGenieEvent(struct genieReplyStruct * reply)
       {
 	// Go to form5 (Visitor screen)
 	genieWriteObj(GENIE_OBJ_FORM, 5, 0);
-	genieWriteStr(1, message);
-	// Need to add code to start countdown
+	genieWriteStr(1, user_message);
       }
       if(reply->index == 6)
       {
-	// Go to form10 (the PININ screen)
+	// Go to form10 (the PIN screen)
 	genieWriteObj(GENIE_OBJ_FORM, 10, 0);
       }
       if(reply->index == 7)
@@ -242,7 +244,8 @@ void handleGenieEvent(struct genieReplyStruct * reply)
       }
       if(reply->index == 10)
       {
-        sprintf(userMsg, "%s||%s",userMsg, buf);
+        msg_no++;
+        sprintf(msgs_for_user, "%s|%s", msgs_for_user, buf);
         // Clear the buffer
         memset(&buf[0], 0, sizeof(buf));
         count = 0;
@@ -260,7 +263,7 @@ void handleGenieEvent(struct genieReplyStruct * reply)
 	{
 	  // Go to form0 (Back to user home screen)
  	  genieWriteObj(GENIE_OBJ_FORM, 0, 0);
-	  genieWriteStr(5, userMsg);
+	  //genieWriteStr(5, userMsg);
 	}
 	else
 	{
@@ -271,7 +274,9 @@ void handleGenieEvent(struct genieReplyStruct * reply)
 	  }
 	  else
 	  {
-	    genieWriteStr(, "Wrong PIN");
+	    genieWriteStr(4, "Wrong PIN");
+	    usleep(500000);
+	    genieWriteStr(4, "");
 	    wrongPIN++;
 	  }
 	}
@@ -310,6 +315,8 @@ void handleGenieEvent(struct genieReplyStruct * reply)
     
     if(reply->object == GENIE_OBJ_LED_DIGITS)
     {
+      if(reply->index == 0)
+        tortoise = reply->data;
       if(reply->index == 3) // From the user picks a msg screen
     	{
     	  message_picked = reply->data;  
