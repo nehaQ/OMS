@@ -38,11 +38,13 @@
 // Form 12- User chooses to set timer or set alarm
 //	    Winbutton20 - 22
 // Form 13- User sets the alarm
-// 	    Winbutton23 - 24, StaticText7, Knob0, Leddigits4, Strings6-7
+// 	    Winbutton23 - 24, StaticText7, Keyboard3, Leddigits4, Strings6-7
 //	    Leddigits17
 // Form 14- User changes PIN form
 //	    Winbutton27, Winbutton28, Strings8, Leddigits25, Leddigits18
-//	    Keyboard4
+//	    Keyboard4, String 6, Statictext20
+// Form 15- PIN change acknowledgement form
+// 	    String9, Statictext
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -68,13 +70,14 @@ char user_message [500]; //
 char msgs_for_user[100]; // Store the users messages
 char password[] = "2957\0"; // Store the users password
 int count = 0; // Count the number of characters being printed
-int tortoise = 1; //starting time value
+volatile int tortoise = 1; //starting time value
 int wrongPIN = 0;
 int i_was_to_be_back = 0;
 int message_picked = 0;
 int msg_no = 0;
-int startSec;
+int startSec=0;
 int *start;
+int hour = 0; // Builds the hour entered by the user on form13
 int hello = 0;
 int set = 0;
 char* preset_msg[] = {"", "Gone for lunch", "In a meeting", "Ba back soon", "Out for the day", "Playing golf"};
@@ -101,10 +104,10 @@ static void *clockWork(void * data)
   tt = time(NULL);
     (void) localtime_r(&tt, &timeData);
   
-  start = (tortoise);
-  startSec = *start;
-  printf("%d", startSec);
-  startSec = (startSec)*(60);
+  //start = (tortoise);
+  //startSec = *start;
+  //printf("%d", startSec);
+  //startSec = (startSec)*(60);
   
   for(;;)
   {
@@ -155,7 +158,7 @@ static void *clockWork(void * data)
 static void *timerHA(void * data)
 {
   struct sched_param sched;
-  int pri = 11;
+  int pri = 10;
 
   //set to real time prioority 
   
@@ -272,6 +275,24 @@ void handleGenieEvent(struct genieReplyStruct * reply)
 	//write to the data passed through the keyboard
 	keyboard(reply->data, 4);
       }
+      if(reply->index == 3)
+      {
+      	// The set the clock form. Needs validation
+      	if(reply->data == 8)
+	{
+	  count--;
+	  if(count < 0) count = 0;
+	  buf[count] = '\0';
+	  updateDisplay(7);
+	}
+	else
+	{
+	  buf[count] = reply->data;
+	  //hour = hour*10 + (int)reply->data;
+	  count++;
+	  updateDisplay(7);
+  	}
+      }
       if(reply->index == 4)
       {
 	//write to the data passed through the keyboard
@@ -289,8 +310,11 @@ void handleGenieEvent(struct genieReplyStruct * reply)
       if(reply->index == 1)
       {
 	// Go to form11 (Read your msgs screen)
-	genieWriteObj(GENIE_OBJ_FORM, 11, 0); 
-	genieWriteStr(5, msgs_for_user);
+	genieWriteObj(GENIE_OBJ_FORM, 11, 0);
+	if(msg_no == 0)
+	  genieWriteStr(5, "No messages at present");
+	else
+	  genieWriteStr(5, msgs_for_user);
       }
       if(reply->index == 2)
       {
@@ -422,7 +446,7 @@ void handleGenieEvent(struct genieReplyStruct * reply)
       {
       	// Go to form14 (change the PIN form)
       	genieWriteObj(GENIE_OBJ_FORM, 14, 0);
-      	genieWriteStr(8, password);
+      	genieWriteStr(6, password);
       }
       if(reply->index == 17)
       {
@@ -454,8 +478,7 @@ void handleGenieEvent(struct genieReplyStruct * reply)
       {
         // Go to form13 (Set alarm screen)
         genieWriteObj(GENIE_OBJ_FORM, 13, 0);
-        // Render a string
-        genieWriteStr(6, "Use knob to choose an hour between 1 and 24");
+        set = CLOCK;
       }
       if(reply->index == 22)
       {
@@ -469,9 +492,20 @@ void handleGenieEvent(struct genieReplyStruct * reply)
       }
       if(reply->index == 24)
       {
-        // Go to form5 (Visitor screen)
-	set = CLOCK;
-        updateForm5();
+        hour = atoi(buf);
+        if(hour >=1 && hour <=24)
+	{
+          // Go to form5 (Visitor screen)
+	  set = CLOCK;
+          updateForm5();
+        }
+        else
+        {
+          genieWriteStr(7, "Invalid hour");
+          memset(&buf[0], 0, sizeof(buf));
+	  count = 0;
+	  hour = 0; // Clear the hour
+	}
       }
       if(reply->index == 25)
       {
@@ -493,6 +527,10 @@ void handleGenieEvent(struct genieReplyStruct * reply)
       	// Clear the buffer
 	memset(&buf[0], 0, sizeof(buf));
 	count = 0;
+	// Go to form15 (Ack form)
+	genieWriteObj(GENIE_OBJ_FORM, 15, 0);
+	genieWriteStr(9, password);
+	usleep(1500000);
 	// Go to form0
 	genieWriteObj(GENIE_OBJ_FORM, 0, 0);
       }
