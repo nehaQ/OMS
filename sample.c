@@ -56,6 +56,7 @@
 #include <sys/types.h>
 #include <pthread.h>
 #include <math.h>
+#include <signal.h>
 #include <time.h>
 
 #include <geniePi.h>  //the ViSi-Genie-RaspPi library
@@ -342,8 +343,7 @@ void handleGenieEvent(struct genieReplyStruct * reply)
       if(reply->index == 5)
       {
 	// Go to form5 (Visitor screen)
-	//kill previous one?
-	//pthread_create(&timer_, NULL, timerHA, (void*)tortoise);
+	pthread_kill(&myThread, SIGUSR1);
 	updateForm5();
       }
       if(reply->index == 6)
