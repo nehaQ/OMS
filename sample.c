@@ -84,22 +84,18 @@ int set = 0;
 char* preset_msg[] = {"", "Gone for lunch", "In a meeting", "Ba back soon", "Out for the day", "Playing golf"};
 pthread_t timer_;
 
+
 //-----------------------------------------------------------------------
 
-void my_handler(int signum)
+// Go to form5 (visitor screen) 
+// Separate functions because strings 1,2 need to be rendered
+void updateForm5()
 {
-  //if(signum == SIGUSR1)
-  //{
-    printf("hola");
-    genieWriteObj(GENIE_OBJ_LED_DIGITS, 2, 6); //minutes
-    genieWriteObj(GENIE_OBJ_LED_DIGITS, 1, 7);
-    //if(startSec == 0)
-	 //i_was_to_be_back = 1;
-	   // startSec--;
-  //}
+  genieWriteObj(GENIE_OBJ_FORM, 5, 0);
+  genieWriteStr(1, user_message);
+  if(i_was_to_be_back)
+    genieWriteStr(2, "I was supposed to be back:");
 }
-
-
 
 //-----------------------------------------------------------------------
 // Runs the clock on all forms
@@ -121,23 +117,6 @@ static void *clockWork(void * data)
   sleep(1);
   tt = time(NULL);
     (void) localtime_r(&tt, &timeData);
-  
-  
-  //start = (tortoise);
-  //startSec = *start;
-  //printf("%d", startSec);
-  //startSec = (startSec)*(60);
-  
-  //int startSec;
-  //int *start;
-  //sigset_t set;
-  
-  //start = data;
-  //startSec = *start;
-  //startSec *= 60;
-  
-  //sigemptyset(&set); // signal to catch
-  //sigaddset(&set, SIGUSR1);
   
   for(;;)
   {
@@ -172,13 +151,6 @@ static void *clockWork(void * data)
     genieWriteObj(GENIE_OBJ_LED_DIGITS, 21, timeData.tm_min);
     genieWriteObj(GENIE_OBJ_LED_DIGITS, 23, timeData.tm_min);
     genieWriteObj(GENIE_OBJ_LED_DIGITS, 25, timeData.tm_min);
-
-    // Timer
-    //genieWriteObj(GENIE_OBJ_LED_DIGITS, 2, abs(startSec)/60); //minutes
-    //genieWriteObj(GENIE_OBJ_LED_DIGITS, 1, abs(startSec)%60);
-    //if(startSec == 0)
-    //	i_was_to_be_back = 1;
-    //startSec--;
   }
   return (void *)NULL;
 }
@@ -187,49 +159,21 @@ static void *clockWork(void * data)
 
 static void *timerHA(void * data)
 {
-  int startSec, sigNo;
-  int *start;
-  sigset_t set;
-  struct sigaction usr_action;
-  
-  start = data;
-  startSec = *start;
-  startSec *= 60;
-  
-  /*sigemptyset(&set); // signal to catch
-  if(sigaddset(&set, SIGUSR1) == -1)
-  {
-    perror("Sigaddset error");
+  int stop = *(int *)data;
+  if(stop == 0)
     pthread_exit((void *)1);
+  int startSec = tortoise*60;
+   
+  for(;;)
+  {    
+    usleep(1000000); // countdown every 1 second
+    // Timer
+    genieWriteObj(GENIE_OBJ_LED_DIGITS, 2, abs(startSec)/60); //minutes
+    genieWriteObj(GENIE_OBJ_LED_DIGITS, 1, abs(startSec)%60);
+    if(startSec == 0)
+    	{i_was_to_be_back = 1; updateForm5();}
+    startSec--;
   }
-  printf("Im running");
-  sigwait(&set, &sigNo); // Wait for signal
-  */
-  sigfillset(&set);
-  usr_action.sa_handler = my_handler;
-  usr_action.sa_mask = set;
-  usr_action.sa_flags = 0;
-  sigaction(SIGUSR1, &usr_action, NULL);
-  /* switch(sigNo)
-  {
-    case SIGUSR1: 
-	  for(;;)
-	  {    
-	    // Timer
-	    genieWriteObj(GENIE_OBJ_LED_DIGITS, 2, abs(startSec)/60); //minutes
-	    genieWriteObj(GENIE_OBJ_LED_DIGITS, 1, abs(startSec)%60);
-	    if(startSec == 0)
-	    	i_was_to_be_back = 1;
-	    startSec--;
-	  }
-	  break;
-    case SIGKILL:
-  	  pthread_exit((void *)3);
-  	  break;
-    default:
-  	  perror("Wrong case");
-  	  pthread_exit((void *)4);
-  } */
 
   return (void *)NULL;
 }
@@ -242,17 +186,7 @@ void updateDisplay(int string)
   genieWriteStr(string, buf); //strings
 }
 
-//-----------------------------------------------------------------------
 
-// Go to form5 (visitor screen) 
-// Separate functions because strings 1,2 need to be rendered
-void updateForm5()
-{
-  genieWriteObj(GENIE_OBJ_FORM, 5, 0);
-  genieWriteStr(1, user_message);
-  if(i_was_to_be_back)
-    genieWriteStr(2, "I was supposed to be back:");
-}
 //-----------------------------------------------------------------------
 
 void keyboard(int data, int string)
@@ -390,7 +324,7 @@ void handleGenieEvent(struct genieReplyStruct * reply)
       if(reply->index == 5)
       {
 	// Go to form5 (Visitor screen)
-	pthread_kill(timer_, SIGUSR1);
+	pthread_create(&timer_, NULL, timerHA, &set);
 	set = TIMER;
 	updateForm5();
       }
@@ -436,6 +370,7 @@ void handleGenieEvent(struct genieReplyStruct * reply)
 	{
 	  // Reset the i_was_to_be_back
 	  i_was_to_be_back = 0;
+	  
 	  // Go to form0 (Back to user home screen)
  	  genieWriteObj(GENIE_OBJ_FORM, 0, 0);
 	  set = 0; // Turn off timer/alarm
@@ -465,7 +400,7 @@ void handleGenieEvent(struct genieReplyStruct * reply)
 	genieWriteObj(GENIE_OBJ_FORM, 0, 0);
 	if(set == TIMER)
 	{
-	  //pthread_cancel(timer_);
+	  
 	  set = 0;
 	}
       }
@@ -655,7 +590,7 @@ int main()
 
   // Select form0
   genieWriteObj(GENIE_OBJ_FORM, 0, 0);
-  signal(SIGUSR1, my_handler);// user defined handler function    
+  
   // Start the clock thread
   int status = pthread_create(&myThread, NULL, clockWork, NULL);
   if(status < 0)
@@ -664,14 +599,6 @@ int main()
     exit(1);
   }  
   
-  status = pthread_create(&timer_, NULL, timerHA, &tortoise);
-  if(status < 0)
-  {
-    perror("pthread_t_create failed");
-    exit(1);
-  }  
-  
-
   // Big loop to wait for events to happen
   for(;;)                         
   {
@@ -682,9 +609,6 @@ int main()
 
     }
     usleep(10000);                //10-millisecond delay.Don't hog the 
-    //if(set == TIMER) pthread_kill(timer_, SIGUSR1);
-      //if(set == 0) pthread_kill(timer_, SIGKILL);
-    
   }	                          
   //CPU in case anything else is happening
   return 0;
