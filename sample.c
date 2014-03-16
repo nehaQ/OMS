@@ -223,7 +223,7 @@ void keyboard(int data, int string)
 
 //-----------------------------------------------------------------------------
 // Convert 24 hours to minutes
-void convertHours(int data)
+int convertHours(int data)
 {
   int hour = data/100;
   int min = hour*60;
