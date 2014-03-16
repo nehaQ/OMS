@@ -252,22 +252,26 @@ void handleGenieEvent(struct genieReplyStruct * reply)
       {
       	// User picked hello=1
       	hello = 1;
+      	sprintf(user_message, "%s", preset_msg[hello]);
       	// Go to form12 to let user pick clock/timer
       	genieWriteObj(GENIE_OBJ_FORM, 12, 0);
       }
       if(reply->index == 3)
       {
         hello = 2;
+        sprintf(user_message, "%s", preset_msg[hello]);
       	genieWriteObj(GENIE_OBJ_FORM, 12, 0);       
       }
       if(reply->index == 4)
       {
         hello = 3;
+        sprintf(user_message, "%s", preset_msg[hello]);
        	genieWriteObj(GENIE_OBJ_FORM, 12, 0);        
       }
       if(reply->index == 5)
       {
         hello = 4;
+        sprintf(user_message, "%s", preset_msg[hello]);
       	genieWriteObj(GENIE_OBJ_FORM, 12, 0);        
       }
     }
@@ -393,6 +397,7 @@ void handleGenieEvent(struct genieReplyStruct * reply)
         count = 0;
 	// Go to form16 (visitor keyboard with prompt)
 	genieWriteObj(GENIE_OBJ_FORM, 16, 0);
+	genieWriteStr(12, "Please leave your name");
       }
       if(reply->index == 11)
       {
@@ -435,7 +440,7 @@ void handleGenieEvent(struct genieReplyStruct * reply)
       if(reply->index == 13)
       {
 	// Set user_message
-	sprintf(user_message, "%s", preset_msg[hello]);
+	//sprintf(user_message, "%s", preset_msg[hello]);
       	// Go to form12 (User chooses to set clk/timer)
       	genieWriteObj(GENIE_OBJ_FORM, 12, 0);
       }
@@ -590,7 +595,10 @@ void handleGenieEvent(struct genieReplyStruct * reply)
       }
       if(reply->index == 33)
       {
-        printf(msgs_for_user, "%s. [From %s]", msgs_for_user, buf);
+        sprintf(msgs_for_user, "%s. [From %s]", msgs_for_user, buf);
+        // Clear the buffer
+	memset(&buf[0], 0, sizeof(buf));
+	count = 0;
         // Go to form9
 	genieWriteObj(GENIE_OBJ_FORM, 9, 0);
 	usleep(2000000);
