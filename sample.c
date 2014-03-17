@@ -1,3 +1,4 @@
+//------------------------------------------------------------------------------
 // Source code using the ViSi-Genie-RaspPi library
 // 4D Systems - Office Messaging System
 // Allows users to leave/ select a message from to leave for
@@ -6,29 +7,30 @@
 // with a string object which displays the message typed 
 // through the keyboard. 
 // Form 0 - Leave a message/Read messages screen for the user
-//	    Winbutton0, Winbutton1, Winbutton16, Sound0
+//	    Leddigit7, Leddigit8, Sounds0, Winbutton0, Winbutton1, Winbutton16,
+//	    Winbutton32
 // Form 1 - Set a message/Pick a message screen for the user
-//	    Winbutton2, Winbutton3, Winbutton14
+//	    Leddigits9, Leddigits10, Winbutton2, WInbutton3, Winbutton31
 // Form 2 - Pick a message screen. Uses a slider to choose the message 
 //	    user wants to display
-//	    StaticText0 to StaticText4, Winbutton13, Winbutton17
-//	    4Dbutton2-5
+//	    4Dbutton2-5, Leddigits11, Leddigits12, StaticText0-4, Winbutton13, 
+//	    Winbutton17
 // Form 3 - Screen with a keyboard for the user to type out the message
 //	    Keyboard0, Strings0, Winbutton4, Winbutton18
 // Form 4 - Screen to set countdown timer. Uses a slider and LED digits
-//	    Slider1, StaticText6, StaticText7, Leddigits0, Winbutton5
-//	    Winbutton19
+//	    Leddigits0, Leddigits19, Leddigits20, Slider1, StaticText6, 
+//	    StaticText7, Winbutton5, Winbutton19
 // Form 5 - Screen which is displayed to the visitor
-//	    Leddigits1, Leddigits2, Leddigits5, Leddigits 6
-//	    StaticText8 to StaticText10, Strings1, Strings2
-//	    Strings7, Winbutton6, Winbutton7, Statictext 19
+//	    Leddigits1, Leddigits2, Leddigits21, Leddigits22, Statictext8
+//	    StaticText10, Strings1, Strings2, Strings10, Strings11, Winbutton6
+//	    Winbutton7
 // Form 6 - Pick a message/Set Message screen for the visitor
-//	    Winbutton8, Winbutton9, Winbutton15
+//	    Leddigits5, Leddigits6, Winbutton8, Winbutton9, Winbutton15
 // Form 7 - Keyboard for the visitor
 //	    Keyboard1, Strings3, Winbutton10, Winbutton25
 // Form 8 - Preset messages for visitor with slider to choose
-//	    Leddigits4, Slider2, StaticText11 to 13, Winbutton26
-// 	    4Dbutton0, 4Dbutton1
+//	    4Dbutton0, 4Dbutton1, Leddigits23, Leddigits24, StaticText11-13, Winbutton26
+// 	    
 // Form 9 - Acknowledgement screen for the visitor
 //	    Image0, StaticText14
 // Form 10- PIN entered access for the user
