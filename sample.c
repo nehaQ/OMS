@@ -29,24 +29,26 @@
 // Form 7 - Keyboard for the visitor
 //	    Keyboard1, Strings3, Winbutton10, Winbutton25
 // Form 8 - Preset messages for visitor with slider to choose
-//	    4Dbutton0, 4Dbutton1, Leddigits23, Leddigits24, StaticText11-13, Winbutton26
-// 	    
+//	    4Dbutton0, 4Dbutton1, Leddigits23, Leddigits24, StaticText11-13, 
+// 	    Winbutton26
 // Form 9 - Acknowledgement screen for the visitor
 //	    Image0, StaticText14
 // Form 10- PIN entered access for the user
 //	    Keyboard2, StaticText15, Strings4, Winbutton11, Winbutton29
 // Form 11- Read your messages screen for the user
-//	    StaticText16, Strings5, Winbutton12, Winbutton30
+//	    Leddigits13, Leddigits14, StaticText16, Strings5, Winbutton12, 
+//      Winbutton30
 // Form 12- User chooses to set timer or set alarm
-//	    Winbutton20 - 22
+//	    Leddigits15, Leddigits16, Winbutton20-22
 // Form 13- User sets the alarm
-// 	    Winbutton23 - 24, StaticText7, Keyboard3, Leddigits4, Strings6-7
-//	    Leddigits17
+// 	    Keyboard3, Leddigits4, Leddigits17, StaticText7, Strings7, Winbutton23-24
 // Form 14- User changes PIN form
-//	    Winbutton27, Winbutton28, Strings8, Leddigits25, Leddigits18
-//	    Keyboard4, String 6, Statictext20
+//	    Keyboard4, Leddigits18, Leddigits25, Statictext18, Statictext20, 
+//	    Strings6, Strings8, Winbutton27
 // Form 15- PIN change acknowledgement form
-// 	    String9, Statictext
+// 	    Statictext21, Strings9
+// Form 16- Visitor keyboard with name prompt
+//      Keyboard5, Strings12, Winbutton33, Winbutton34
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -69,36 +71,37 @@
 #define HOUR  1
 #define MINUTE 60
 
-int display;
-int count;
 char buf [500]; // Buffer to hold string to print to screen
-char user_message [500]; // 
-char msgs_for_user[100]; // Store the users messages
+char user_message [500]; // The message that the user leaves
+char msgs_for_user[500]; // Store the users messages
 char password[] = "2957\0"; // Store the users password
 int count = 0; // Count the number of characters being printed
-int tortoise = 1; //starting time value
-int wrongPIN = 0;
-int i_was_to_be_back = 0;
-int message_picked = 0;
-int msg_no = 0;
+int start_time = 1; //Starting time value
+int wrongPIN = 0; // Count the number of tries with the PIN
+int i_was_to_be_back = 0; // Conditional message when timer finishes
+int msg_no = 0; // Keep count of the number of msgs left for the user
 int hour = 0; // Builds the hour entered by the user on form13
-int hello = 0;
-int set = 0;
-char* preset_msg[] = {"", "Gone for lunch", "In a meeting", "Be back soon", "Out for the day"};
-pthread_t timer_;
-int time_unit = 0;
+int hello = 0; // The index of the msg that the user picks from the list
+int set = 0; // Track whether Timer has been set or Clock
+char* preset_msg[] = {"", "Gone for lunch", 
+                          "In a meeting", 
+                          "Be back soon", 
+                          "Out for the day"};
+pthread_t timer_; // Thread for running the countdown timer
+int time_unit = 0; // Keep track of whether countdown will be in minutes/hours
 
-
-//-----------------------------------------------------------------------
-
+//-----------------------------------------------------------------------------
 // Go to form5 (visitor screen) 
-// Separate functions because strings 1,2 need to be rendered
+// Function to render the visitor screen.
 void updateForm5()
 {
   genieWriteObj(GENIE_OBJ_FORM, 5, 0);
+  // Render the message that user left
   genieWriteStr(1, user_message); 
+  // If timer has finished, print this message
   if(i_was_to_be_back)
     genieWriteStr(2, "I was supposed to be back:");
+  // Depending which mode was chosen, label timer accordingly
   if(set == TIMER)
   {
     genieWriteStr(10, "Minutes");
@@ -111,7 +114,8 @@ void updateForm5()
   }
 }
 
-//-----------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// Code follows from basicDemo.c - from the 4Dsystems libraries
 // Runs the clock on all forms
 static void *clockWork(void * data)
 {
@@ -120,10 +124,11 @@ static void *clockWork(void * data)
 
   time_t tt;
   struct tm timeData;
-  //set to real time priority 
   
+  // Set to real time priority 
   memset(&sched, 0,  sizeof(sched));
-  if(pri>sched_get_priority_max (SCHED_RR)) pri = sched_get_priority_max(SCHED_RR);
+  if(pri>sched_get_priority_max (SCHED_RR)) 
+    pri = sched_get_priority_max(SCHED_RR);
   
   sched.sched_priority = pri;
   sched_setscheduler (0, SCHED_RR, &sched);
@@ -140,8 +145,8 @@ static void *clockWork(void * data)
     
     tt = time(NULL);
     (void) localtime_r(&tt, &timeData);
+    
     // Clock - hour
-
     genieWriteObj(GENIE_OBJ_LED_DIGITS, 5, timeData.tm_hour);
     genieWriteObj(GENIE_OBJ_LED_DIGITS, 7, timeData.tm_hour);
     genieWriteObj(GENIE_OBJ_LED_DIGITS, 9, timeData.tm_hour);
@@ -169,20 +174,18 @@ static void *clockWork(void * data)
   return (void *)NULL;
 }
 
-//-----------------------------------------------------------------------
-
+//-----------------------------------------------------------------------------
+// Runs the countdown timer on the visitor screen
 static void *timerHA(void * data)
 {
-  int stop = *(int *)data;
-  if(stop == 0)
-    pthread_exit((void *)1);
-  int startSec = tortoise*time_unit;
+  // Convert into appt unit of time hour/seconds
+  int startSec = start_time*time_unit;
    
   for(;;)
   { 
-    // Timer
-    genieWriteObj(GENIE_OBJ_LED_DIGITS, 2, abs(startSec)/60); //minutes
-    genieWriteObj(GENIE_OBJ_LED_DIGITS, 1, abs(startSec)%60);
+    // Countdown timer
+    genieWriteObj(GENIE_OBJ_LED_DIGITS, 2, abs(startSec)/60); //minutes/hour
+    genieWriteObj(GENIE_OBJ_LED_DIGITS, 1, abs(startSec)%60); //seconds/mins
     if(startSec == 0)
     	{i_was_to_be_back = 1; updateForm5();}
     startSec--;
@@ -192,16 +195,15 @@ static void *timerHA(void * data)
   return (void *)NULL;
 }
 
-//-----------------------------------------------------------------------
-
-//Update the display
+//-----------------------------------------------------------------------------
+// Update the string currently being rendered with keypress from keyboard
 void updateDisplay(int string)
 {
-  genieWriteStr(string, buf); //strings
+  genieWriteStr(string, buf); 
 }
 
-//-----------------------------------------------------------------------
-
+//-----------------------------------------------------------------------------
+// Checks keypress for Backspace and then renders it to the respective string
 void keyboard(int data, int string)
 {
   if(data == 8)
@@ -219,10 +221,18 @@ void keyboard(int data, int string)
   }
 }
 
-//-----------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// Convert 24 hours to minutes
+void convertHours(int data)
+{
+  int hour = data/100;
+  int min = hour*60;
+  int more_min = data - hour*100;
+  return (min + more_min);
+}
 
-//This is the event handler. Messages received from the display
-//are processed here.
+//-----------------------------------------------------------------------------
+//This is the event handler. Events received from display are processed here.
 void handleGenieEvent(struct genieReplyStruct * reply)
 {
   //check if the cmd byte is a report event
@@ -512,10 +522,10 @@ void handleGenieEvent(struct genieReplyStruct * reply)
 	tt = time(NULL);
 	(void)localtime_r(&tt, &timeData);
         if(hour <2400 && hour%100<=59 && hour>(timeData.tm_hour*100+timeData.tm_min))
-	{ 
-	  tortoise = abs(timeData.tm_hour - hour/100);//convert to minutes
-	  tortoise = tortoise*60 + abs(timeData.tm_min - hour%100);
-	  if(tortoise >= 60)
+	{
+    // The difference in times in minutes
+    start_time = convertHours(hour) - convertHours((timeData.tm_hour*100+timeData.tm_min)); 
+	  if(start_time >= 60)
 	  {
 	    // Gone for more than an hour
 	    time_unit = HOUR;
@@ -622,9 +632,9 @@ void handleGenieEvent(struct genieReplyStruct * reply)
       if(reply->index == 1)
       {
         // Store the time to display later
-        tortoise = reply->data;
+        start_time = reply->data;
         // Write to the LED digits the value of slider
-        genieWriteObj(GENIE_OBJ_LED_DIGITS, 0x00, tortoise);
+        genieWriteObj(GENIE_OBJ_LED_DIGITS, 0x00, start_time);
                 
       }
       if(reply->index == 2)
@@ -640,7 +650,7 @@ void handleGenieEvent(struct genieReplyStruct * reply)
     printf("Unhandled event: command: %2d, object: %2d, index: %d, data: %d \r\n", reply->cmd, reply->object, reply->index, reply->data);
 }
 
-//-----------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 int main()
 {
@@ -684,4 +694,3 @@ int main()
   //CPU in case anything else is happening
   return 0;
 }
-
