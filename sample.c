@@ -352,13 +352,13 @@ void handleGenieEvent(struct genieReplyStruct * reply)
 	  genieWriteStr(5, "No messages at present");
 	else
 	{
-	  db_connect();
+	  /*db_connect();
   	  char*** msg = db_read_user();
 	  int i;
 	  for (i=0; i<2; i++)
 	    sprintf(msgs_for_user,"%s\n%s. %s [From %s]", msgs_for_user, msg[i][0], msg[i][1], msg[i][2]);
  	  db_disconnect();
- 	  printf("%s", msgs_for_user);
+ 	  printf("%s", msgs_for_user);*/
  	  genieWriteStr(5, msgs_for_user);
  	}
       }
@@ -675,8 +675,14 @@ int main()
   printf("Office Messaging System basic demo\n");
   printf("==================================\n");
   printf("Program is running. Press Ctrl + C to close.\n");
-
+  
   version();
+  db_connect();
+  char*** msg = db_read_user();
+  int i;
+  for (i=0; i<2; i++)
+    printf("\n%s", msg[i][0]);
+  db_disconnect();
   //db_read_visitor();;
   //db_disconnect();  
   //open the Raspberry Pi's onboard serial port, baud rate is 115200
@@ -685,6 +691,7 @@ int main()
 
   // Select form0    
   genieWriteObj(GENIE_OBJ_FORM, 0, 0); 
+  
   
   // Start the clock  thread
   int status = pthread_create(&myThread, NULL, clockWork, NULL);
