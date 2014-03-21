@@ -64,6 +64,8 @@
 #include <time.h>
 
 #include <geniePi.h>  //the ViSi-Genie-RaspPi library
+//#include "data_structures.h"
+#include "db.c"	
 #define GENIE_OBJ_SOUND    22
 #define GENIE_OBJ_4DBUTTON 30
 #define CLOCK 2
@@ -349,7 +351,16 @@ void handleGenieEvent(struct genieReplyStruct * reply)
 	if(msg_no == 0)
 	  genieWriteStr(5, "No messages at present");
 	else
-	  genieWriteStr(5, msgs_for_user);
+	{
+	  db_connect();
+  	  char*** msg = db_read_user();
+	  int i;
+	  for (i=0; i<2; i++)
+	    sprintf(msgs_for_user,"%s\n%s. %s [From %s]", msgs_for_user, msg[i][0], msg[i][1], msg[i][2]);
+ 	  db_disconnect();
+ 	  printf("%s", msgs_for_user);
+ 	  genieWriteStr(5, msgs_for_user);
+ 	}
       }
       if(reply->index == 2)
       {
@@ -636,7 +647,7 @@ void handleGenieEvent(struct genieReplyStruct * reply)
         // Write to the LED digits the value of slider
         genieWriteObj(GENIE_OBJ_LED_DIGITS, 0x00, start_time);
                 
-      }
+      } 
       if(reply->index == 2)
       {
         // Write to the LED digits the value of slider
@@ -646,7 +657,7 @@ void handleGenieEvent(struct genieReplyStruct * reply)
   }// End-if report event
   
   // Print error message
-  else
+  else 
     printf("Unhandled event: command: %2d, object: %2d, index: %d, data: %d \r\n", reply->cmd, reply->object, reply->index, reply->data);
 }
 
@@ -665,19 +676,22 @@ int main()
   printf("==================================\n");
   printf("Program is running. Press Ctrl + C to close.\n");
 
+  version();
+  //db_read_visitor();;
+  //db_disconnect();  
   //open the Raspberry Pi's onboard serial port, baud rate is 115200
   //make sure that the display module has the same baud rate
   genieSetup("/dev/ttyAMA0", 115200);  
 
-  // Select form0
-  genieWriteObj(GENIE_OBJ_FORM, 0, 0);
+  // Select form0    
+  genieWriteObj(GENIE_OBJ_FORM, 0, 0); 
   
-  // Start the clock thread
+  // Start the clock  thread
   int status = pthread_create(&myThread, NULL, clockWork, NULL);
-  if(status < 0)
+  if(status < 0) 
   {
     perror("pthread_t_create failed");
-    exit(1);
+    exit(1); 
   }  
   
   // Big loop to wait for events to happen
@@ -690,7 +704,8 @@ int main()
 
     }
     usleep(10000);                //10-millisecond delay.Don't hog the 
-  }	                          
+  }	                         
   //CPU in case anything else is happening
-  return 0;
-}
+
+  return 0;  
+} 
